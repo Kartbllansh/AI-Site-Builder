@@ -1,83 +1,58 @@
 @echo off
-:: =============================================
-:: Скрипт для сборки React/Vite проекта
-:: Создаёт папку dist с относительными путями к JS/CSS/картинкам
-:: Предназначен для новичков, которые сгенерировали сайт через AI
-:: =============================================
 
-:: --- 1. Проверка Node.js ---
-node -v >nul 2>&1
-IF ERRORLEVEL 1 (
-    echo [Ошибка] Node.js не установлен.
-    echo 1) Перейдите на https://nodejs.org/
-    echo 2) Скачайте LTS версию и установите.
-    echo 3) После установки снова запустите этот скрипт.
+echo ===== React/Vite Build Script =====
+echo.
+
+:: Check Node.js
+echo [1/5] Checking Node.js...
+node -v > nul 2>&1
+if errorlevel 1 (
+    echo ERROR: Node.js is not installed
+    echo Download from https://nodejs.org/
     pause
-    exit /b
+    exit /b 1
 )
+echo OK: Node.js found
 
-:: --- 2. Проверка npm ---
-npm -v >nul 2>&1
-IF ERRORLEVEL 1 (
-    echo [Ошибка] npm не найден.
-    echo Важно понимать:
-    echo npm — это инструмент, который всегда устанавливается вместе с Node.js.
-    echo Если npm не найден, значит Node.js был установлен неправильно или PATH настроен некорректно.
-    echo Решение:
-    echo 1) Переустановите Node.js с официального сайта.
-    echo 2) Закройте и снова откройте скрипт после установки.
+:: Check npm
+echo [2/5] Checking npm...
+for /f "delims=" %%i in ('npm -v 2^>^&1') do set npm_version=%%i
+if defined npm_version (
+    echo OK: npm found, version: %npm_version%
+) else (
+    echo ERROR: npm not found
     pause
-    exit /b
+    exit /b 1
 )
 
-:: --- 3. Исправление vite.config.ts на относительные пути ---
-IF EXIST "vite.config.ts" (
-    echo --- Проверяем vite.config.ts на базовый путь ---
-    powershell -Command "(gc vite.config.ts) -replace 'base:.*','base: \"./\"' | Set-Content vite.config.ts"
-    echo Установлен base='./' для корректной работы ссылок на JS/CSS/картинки.
-)
+:: Пропускаем создание конфига если он уже есть
+echo [3/5] Skipping config check...
 
-:: --- 4. Установка зависимостей ---
-echo --- Устанавливаем зависимости ---
-npm install
-IF ERRORLEVEL 1 (
-    echo [Ошибка] Не удалось установить зависимости.
-    echo Возможные причины:
-    echo 1) Нет интернета.
-    echo 2) Нет прав на папку проекта.
-    echo Попробуйте снова.
+:: Устанавливаем зависимости через прямой вызов
+echo [4/5] Installing dependencies...
+cmd /c "npm.cmd install"
+if errorlevel 1 (
+    echo ERROR: Failed to install dependencies
     pause
-    exit /b
+    exit /b 1
 )
+echo OK: Dependencies installed
 
-:: --- 5. Сборка проекта ---
-echo --- Собираем проект ---
-npm run build
-IF ERRORLEVEL 1 (
-    echo [Ошибка] Сборка проекта завершилась с ошибкой.
-    echo Возможные причины:
-    echo 1) Ошибки в коде приложения.
-    echo 2) Проблемы в vite.config.ts.
-    echo 3) Несовместимые пакеты.
-    echo Не переживайте — внимательно прочитайте ошибки выше и попробуйте исправить их.
+:: Собираем проект
+echo [5/5] Building project...
+cmd /c "npm.cmd run build"
+if errorlevel 1 (
+    echo ERROR: Build failed
     pause
-    exit /b
+    exit /b 1
 )
 
-:: --- 6. Проверка папки dist ---
-IF NOT EXIST "dist" (
-    echo [Ошибка] Папка dist не создана.
-    echo Проверьте логи сборки выше.
-    pause
-    exit /b
+if exist "dist" (
+    echo SUCCESS: Build completed!
+    echo Files in dist folder:
+    dir dist /b
+) else (
+    echo ERROR: dist folder not created
 )
 
-echo --- ✅ Сборка завершена успешно! ---
-echo Папка dist готова к загрузке на сервер.
-echo dist/
-echo   ├── index.html
-echo   └── assets/
-echo       ├── *.js
-echo       └── *.css
 pause
-exit /b
