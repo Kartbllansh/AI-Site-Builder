@@ -33,7 +33,7 @@ dist/
 ## Как скачать скрипт с GitHub
 
 1. Перейдите на страницу репозитория:  
-   `https://github.com/<ваш_логин>/ai-site-builder`
+   `https://github.com/Kartbllansh/ai-site-builder`
 2. Нажмите зеленую кнопку **Code** → **Download ZIP**.
 3. Сохраните ZIP-файл на свой компьютер.
 4. Разархивируйте его, внутри будет файл `build_app.bat`.
